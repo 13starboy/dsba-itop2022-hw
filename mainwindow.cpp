@@ -8,65 +8,64 @@
 #include <fstream>
 #include <sstream>
 #include <QDebug>
-#include <string>
-#include <cstdlib>
-#include <iomanip>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     QWidget *central_widget = new QWidget (this);
-    //cart_model = new CartModel();
+    cart_window = new cart;
     item_model = new ItemModel();
-    setCentralWidget(central_widget);
     m_view = new QTableView(central_widget);
+    setCentralWidget(central_widget);
 
     QGridLayout *layout = new QGridLayout(central_widget);
-    layout->setRowStretch(0, 1);
 
     m_textEdit = new QLineEdit();
-    find_sum();
     cart_button = new QPushButton();
     add_button = new QPushButton();
+
+    m_textEdit->setText("Total: " + QString::number(0, 'd', 2) + '$');
     cart_button->setText("Open Cart");
     add_button->setText("Add to Cart");
-    connect(cart_button, SIGNAL(clicked()), this, SLOT(open_cart()));
-    //connect(add_button, SIGNAL(clicked()), this, SLOT(add_to_cart_function()));
     m_view->setModel(item_model);
+
+    connect(cart_button, SIGNAL(clicked()), this, SLOT(open_cart()));
+    connect(add_button, SIGNAL(clicked()), this, SLOT(add_to_cart_function()));
+
     layout->addWidget(cart_button);
     layout->addWidget(add_button);
     layout->addWidget(m_textEdit);
-    layout->addWidget (m_view);
+    layout->addWidget(m_view);
 
     auto file_menu = menuBar ()->addMenu ("File");
     QAction *open_action = new QAction ("Open");
     connect (open_action, &QAction::triggered, this, &MainWindow::load_data_function);
-    file_menu->addAction  (open_action);
+    file_menu->addAction(open_action);
 
     QAction *saveas_action = new QAction ("Save As");
     connect (saveas_action, &QAction::triggered, this, &MainWindow::save_data_function);
-    file_menu->addAction  (saveas_action);
+    file_menu->addAction(saveas_action);
+
+    QAction *savecart_action = new QAction ("Save cart As");
+    connect (savecart_action, &QAction::triggered, this, &MainWindow::save_cart_data_function);
+    file_menu->addAction(savecart_action);
 
     QAction *about = new QAction ("About");
     connect (about, &QAction::triggered, this, &MainWindow::about_function);
     menuBar()->addAction(about);
-
 }
 
-void MainWindow::find_sum()
+void MainWindow::return_cart_sum()
 {
     double sum = 0;
-    for (auto &item : item_model->m_data)
-    {
-        sum += item.data[1].toDouble();
-    }
-    m_textEdit->setText(QString::number(sum, 'f', 2));
+    for (auto &item : cart_window->cart_model->m_data_cart)// exit error
+            sum += item.data_cart[3].toDouble();
+    m_textEdit->setText("Total: " + QString::number(sum, 'd', 2) + '$');
 }
 
 void MainWindow::open_cart()
 {
-    cart ct;
-    ct.exec();
+    cart_window->show();
 }
 
 void MainWindow::load_data_function ()
@@ -74,43 +73,45 @@ void MainWindow::load_data_function ()
     auto dir = QFileDialog::getOpenFileName (this, "Open File", QDir::currentPath ());
     if (!dir.size ())
         return;
-    auto data = load_data (dir);
-    item_model->set_data (data);
-    find_sum();
+    auto data = load_data(dir);
+    item_model->set_data(data);
 }
 
-//void MainWindow::add_to_cart_function()
-//{
-//    auto data = add_to_cart();
-//    //cart_model->add_data(data);
-//}
-
-//CartItem MainWindow::add_to_cart()
-//{
-//    CartItem res;
-//    QItemSelectionModel *selectModel = m_view->selectionModel();
-//    QModelIndexList indexes = selectModel->selectedIndexes();
-//    for (QModelIndex ind : indexes)
-//    {
-//        int row = ind.row();
-//        QModelIndex index = m_view->model()->index(row,0,QModelIndex());
-//        std::string s = index.data().toString().toStdString();
-//        res.data_cart[0] = QString(s.c_str());
-//        index = m_view->model()->index(row,1,QModelIndex());
-//        s = index.data().toString().toStdString();
-//        res.data_cart[1] = QString(s.c_str());
-//        res.data_cart[2] = QString::number(1);
-//        res.data_cart[3] = res.data_cart[1];
-//    }
-//    return res;
-//}
+void MainWindow::add_to_cart_function()
+{
+    CartItem res;
+    QItemSelectionModel *selectModel = m_view->selectionModel();
+    QModelIndexList indexes = selectModel->selectedIndexes();
+    for (QModelIndex ind : indexes)
+    {
+        int row = ind.row();
+        QModelIndex index = m_view->model()->index(row,0,QModelIndex());
+        std::string s = index.data().toString().toStdString();
+        res.data_cart[0] = QString(s.c_str());
+        index = m_view->model()->index(row,1,QModelIndex());
+        s = index.data().toString().toStdString();
+        res.data_cart[1] = QString(s.c_str());
+        res.data_cart[2] = QString::number(1);
+        res.data_cart[3] = res.data_cart[1];
+    }
+    cart_window->cart_model->add_data(res);
+    return_cart_sum();
+}
 
 void MainWindow::save_data_function ()
 {
   auto dir = QFileDialog::getSaveFileName (this, "Save File As", QDir::currentPath ());
-  if (!dir.size ())
+  if (!dir.size())
     return;
-  save_data (dir);
+  save_data(dir);
+}
+
+void MainWindow::save_cart_data_function ()
+{
+  auto dir = QFileDialog::getSaveFileName (this, "Save File As", QDir::currentPath ());
+  if (!dir.size())
+    return;
+  save_cart_data(dir);
 }
 
 void MainWindow::about_function ()
@@ -159,10 +160,9 @@ std::vector<Item> MainWindow::load_data (const QString &dir)
 
 void MainWindow::save_data (const QString &dir)
 {
-    std::ofstream file (dir.toStdString ());
+    std::ofstream file(dir.toStdString());
     int total_columns = static_cast<int> (item_fields::COUNT);
     for (auto &item : item_model->m_data)
-    {
         for (int i_column = 0; i_column < total_columns; ++i_column)
         {
             file << item.data[i_column].toString().toStdString();
@@ -171,10 +171,22 @@ void MainWindow::save_data (const QString &dir)
             else
                 file << "\n";
         }
-    }
 }
 
-
+void MainWindow::save_cart_data (const QString &dir)
+{
+    std::ofstream file(dir.toStdString());
+    int total_columns = static_cast<int> (cart_fields::COUNT);
+    for (auto &item : cart_window->cart_model->m_data_cart)
+        for (int i_column = 0; i_column < total_columns; ++i_column)
+        {
+            file << item.data_cart[i_column].toString().toStdString();
+            if (i_column < total_columns - 1)
+                file << ",";
+            else
+                file << "\n";
+        }
+}
 
 MainWindow::~MainWindow()
 {
@@ -190,14 +202,12 @@ QVariant ItemModel::data (const QModelIndex &index, int role) const
    return {};
 }
 
-
 const char *enum_to_string (item_fields field)
 {
     switch (field)
     {
     case item_fields::name     : return "Name";
-    case item_fields::price    : return "Price";
-    //case item_fields::date     : return "Date";
+    case item_fields::price    : return "Price ($)";
     case item_fields::COUNT    : return "";
     }
     return {};

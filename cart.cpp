@@ -7,22 +7,17 @@
 #include <fstream>
 #include <sstream>
 #include <QDebug>
-#include <string>
-#include <cstdlib>
-#include <iomanip>
 
 cart::cart(QWidget *parent) :
-    QDialog(parent)
+    QWidget(parent)
 {
-    //QWidget *central_widget = new QWidget (this);
     cart_model = new CartModel();
     cart_view = new QTableView(this);
-    //setCentralWidget(central_widget);
     QGridLayout *l = new QGridLayout(this);
-    l->setRowStretch(0, 1);
-    cart_view->setModel(cart_model);
-    l->addWidget(cart_view);
 
+    cart_view->setModel(cart_model);
+
+    l->addWidget(cart_view);
 }
 
 cart::~cart()
@@ -45,9 +40,9 @@ const char *enum_to_string_cart (cart_fields field)
     switch (field)
     {
     case cart_fields::name     : return "Name";
-    case cart_fields::price    : return "Price for one";
-    case cart_fields::count    : return "Count";
-    case cart_fields::total    : return "Total cost";
+    case cart_fields::price    : return "Price for one ($)";
+    case cart_fields::quantity : return "Quantity";
+    case cart_fields::total    : return "Total cost ($)";
     case cart_fields::COUNT    : return "";
     }
     return {};

@@ -17,31 +17,34 @@ public:
     Q_OBJECT
     QTableView *m_view = nullptr;
     ItemModel *item_model = nullptr;
-    //CartModel *cart_model = nullptr;
+    CartModel *cart_model = nullptr;
     QLineEdit *m_textEdit;
     QPushButton *cart_button;
     QPushButton *add_button;
+
 
 public:
     MainWindow(QWidget *parent = nullptr);
     std::vector<Item> load_data (const QString &dir);
     void save_data (const QString &dir);
+    void save_cart_data (const QString &dir);
+    cart *cart_window;
     ~MainWindow();
-    //CartItem add_to_cart();
+
 
 public slots:
     void load_data_function();
     void save_data_function();
+    void save_cart_data_function();
     void about_function();
-    void find_sum();
+    void return_cart_sum();
     void open_cart();
-    //void add_to_cart_function();
+    void add_to_cart_function();
 };
 
 enum class item_fields
 {
     name,
-    //date,
     price,
     COUNT
 };
@@ -73,7 +76,7 @@ int columnCount(const QModelIndex &/*parent*/) const override
 void set_data (const std::vector<Item> &data)
 {
   beginResetModel ();
-  m_data = data; // dangerous
+  m_data = data;
   endResetModel ();
   emit layoutChanged ();
 }
