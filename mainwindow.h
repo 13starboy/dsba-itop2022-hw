@@ -7,6 +7,7 @@
 #include <QSortFilterProxyModel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QComboBox>
 
 class ItemModel;
 class Item;
@@ -20,8 +21,9 @@ public:
     CartModel *cart_model = nullptr;
     QLineEdit *m_textEdit;
     QPushButton *cart_button;
-    QPushButton *add_button;
-
+    QPushButton *add_to_cart_button;
+    QPushButton *add_item_button;
+    QComboBox *sorting_value;
 
 public:
     MainWindow(QWidget *parent = nullptr);
@@ -31,15 +33,19 @@ public:
     cart *cart_window;
     ~MainWindow();
 
-
 public slots:
+    void return_cart_sum();
+    void recieveData(Item& res);
+
+private slots:
     void load_data_function();
     void save_data_function();
     void save_cart_data_function();
     void about_function();
-    void return_cart_sum();
     void open_cart();
     void add_to_cart_function();
+    void sort_function();
+    void add_item_function();
 };
 
 enum class item_fields
@@ -77,6 +83,14 @@ void set_data (const std::vector<Item> &data)
 {
   beginResetModel ();
   m_data = data;
+  endResetModel ();
+  emit layoutChanged ();
+}
+
+void add_data (const Item &data)
+{
+  beginResetModel ();
+  m_data.insert(m_data.begin(), data);
   endResetModel ();
   emit layoutChanged ();
 }

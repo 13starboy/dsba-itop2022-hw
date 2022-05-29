@@ -10,17 +10,20 @@ CONFIG += c++17
 
 SOURCES += \
     about.cpp \
+    add.cpp \
     cart.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     about.h \
+    add.h \
     cart.h \
     mainwindow.h
 
 FORMS += \
-    about.ui
+    about.ui \
+    add.ui
 
 
 # Default rules for deployment.

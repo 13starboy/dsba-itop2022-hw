@@ -2,6 +2,8 @@
 #include "about.h"
 #include "ui_about.h"
 #include "cart.h"
+#include "add.h"
+#include "ui_add.h"
 #include <QGridLayout>
 #include <QMenuBar>
 #include <QFileDialog>
@@ -22,18 +24,30 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_textEdit = new QLineEdit();
     cart_button = new QPushButton();
-    add_button = new QPushButton();
+    add_to_cart_button = new QPushButton();
+    add_item_button = new QPushButton();
+    sorting_value = new QComboBox();
 
+    m_view->setModel(item_model);
     m_textEdit->setText("Total: " + QString::number(0, 'd', 2) + '$');
     cart_button->setText("Open Cart");
-    add_button->setText("Add to Cart");
-    m_view->setModel(item_model);
+    add_to_cart_button->setText("Add to Cart");
+    add_item_button->setText("Add new Item");
+    sorting_value->addItem("Default");
+    sorting_value->addItem("Price Ascending");
+    sorting_value->addItem("Price Descending");
+    sorting_value->addItem("Name Ascending");
+    sorting_value->addItem("Name Descending");
 
     connect(cart_button, SIGNAL(clicked()), this, SLOT(open_cart()));
-    connect(add_button, SIGNAL(clicked()), this, SLOT(add_to_cart_function()));
+    connect(add_to_cart_button, SIGNAL(clicked()), this, SLOT(add_to_cart_function()));
+    connect(sorting_value, SIGNAL(currentIndexChanged(QString)), SLOT(sort_function()));
+    connect(add_item_button, SIGNAL(clicked()), this, SLOT(add_item_function()));
 
+    layout->addWidget(add_item_button);
+    layout->addWidget(sorting_value);
     layout->addWidget(cart_button);
-    layout->addWidget(add_button);
+    layout->addWidget(add_to_cart_button);
     layout->addWidget(m_textEdit);
     layout->addWidget(m_view);
 
@@ -55,10 +69,52 @@ MainWindow::MainWindow(QWidget *parent)
     menuBar()->addAction(about);
 }
 
+void MainWindow::add_item_function()
+{
+    add e;
+    connect(&e, SIGNAL(sendData(Item&)), this, SLOT(recieveData(Item&)));
+    e.exec();
+}
+
+void MainWindow::recieveData(Item& res)
+{
+    item_model->add_data(res);
+}
+
+void MainWindow::sort_function()
+{
+    QString text = sorting_value->currentText();
+    QSortFilterProxyModel *proxyModel = new QSortFilterProxyModel(this);//while add new item it doesn't add to proxyModel
+    proxyModel->setSourceModel(item_model);
+    if(text == "Default") {
+        m_view->setModel(item_model);
+    }
+    else if (text == "Price Ascending")
+    {
+        proxyModel->sort(1, Qt::AscendingOrder);
+        m_view->setModel(proxyModel);
+    }
+    else if (text == "Price Descending")
+    {
+        proxyModel->sort(1, Qt::DescendingOrder);
+        m_view->setModel(proxyModel);
+    }
+    else if (text == "Name Ascending")
+    {
+        proxyModel->sort(0, Qt::AscendingOrder);
+        m_view->setModel(proxyModel);
+    }
+    else if (text == "Name Descending")
+    {
+        proxyModel->sort(0, Qt::DescendingOrder);
+        m_view->setModel(proxyModel);
+    }
+}
+
 void MainWindow::return_cart_sum()
 {
-    double sum = 0;
-    for (auto &item : cart_window->cart_model->m_data_cart)// exit error
+    long double sum = 0;
+    for (auto &item : cart_window->cart_model->m_data_cart)
             sum += item.data_cart[3].toDouble();
     m_textEdit->setText("Total: " + QString::number(sum, 'd', 2) + '$');
 }
@@ -66,6 +122,7 @@ void MainWindow::return_cart_sum()
 void MainWindow::open_cart()
 {
     cart_window->show();
+
 }
 
 void MainWindow::load_data_function ()
