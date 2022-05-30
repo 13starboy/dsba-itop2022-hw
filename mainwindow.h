@@ -5,9 +5,10 @@
 #include <QTableView>
 #include "cart.h"
 #include <QSortFilterProxyModel>
-#include <QLineEdit>
+#include <QLabel>
 #include <QPushButton>
 #include <QComboBox>
+#include <algorithm>
 
 class ItemModel;
 class Item;
@@ -18,12 +19,12 @@ public:
     Q_OBJECT
     QTableView *m_view = nullptr;
     ItemModel *item_model = nullptr;
-    CartModel *cart_model = nullptr;
-    QLineEdit *m_textEdit;
+    QLabel *m_textEdit;
     QPushButton *cart_button;
     QPushButton *add_to_cart_button;
     QPushButton *add_item_button;
     QComboBox *sorting_value;
+    QSortFilterProxyModel *proxyModel;
 
 public:
     MainWindow(QWidget *parent = nullptr);
@@ -81,18 +82,20 @@ int columnCount(const QModelIndex &/*parent*/) const override
 
 void set_data (const std::vector<Item> &data)
 {
-  beginResetModel ();
-  m_data = data;
-  endResetModel ();
-  emit layoutChanged ();
+    beginResetModel ();
+    m_data.insert(m_data.begin(), data.begin(), data.end());
+    endResetModel ();
+    emit layoutChanged ();
 }
 
 void add_data (const Item &data)
 {
-  beginResetModel ();
-  m_data.insert(m_data.begin(), data);
-  endResetModel ();
-  emit layoutChanged ();
+    if(data.data[0].isNull() || data.data[1].isNull())
+        return;
+    beginResetModel ();
+    m_data.insert(m_data.begin(), data);
+    endResetModel ();
+    emit layoutChanged ();
 }
 
 QVariant data (const QModelIndex &index, int role = Qt::DisplayRole) const override;

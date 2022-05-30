@@ -22,13 +22,15 @@ MainWindow::MainWindow(QWidget *parent)
 
     QGridLayout *layout = new QGridLayout(central_widget);
 
-    m_textEdit = new QLineEdit();
+    m_textEdit = new QLabel();
     cart_button = new QPushButton();
     add_to_cart_button = new QPushButton();
     add_item_button = new QPushButton();
     sorting_value = new QComboBox();
+    proxyModel = new QSortFilterProxyModel(this);
 
     m_view->setModel(item_model);
+    proxyModel->setSourceModel(item_model);
     m_textEdit->setText("Total: " + QString::number(0, 'd', 2) + '$');
     cart_button->setText("Open Cart");
     add_to_cart_button->setText("Add to Cart");
@@ -43,6 +45,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(add_to_cart_button, SIGNAL(clicked()), this, SLOT(add_to_cart_function()));
     connect(sorting_value, SIGNAL(currentIndexChanged(QString)), SLOT(sort_function()));
     connect(add_item_button, SIGNAL(clicked()), this, SLOT(add_item_function()));
+    connect(cart_window, SIGNAL(update_cart_sum()), this, SLOT(return_cart_sum()));
 
     layout->addWidget(add_item_button);
     layout->addWidget(sorting_value);
@@ -79,36 +82,25 @@ void MainWindow::add_item_function()
 void MainWindow::recieveData(Item& res)
 {
     item_model->add_data(res);
+    proxyModel->setSourceModel(item_model);
 }
 
 void MainWindow::sort_function()
 {
     QString text = sorting_value->currentText();
-    QSortFilterProxyModel *proxyModel = new QSortFilterProxyModel(this);//while add new item it doesn't add to proxyModel
-    proxyModel->setSourceModel(item_model);
     if(text == "Default") {
         m_view->setModel(item_model);
+        return;
     }
     else if (text == "Price Ascending")
-    {
         proxyModel->sort(1, Qt::AscendingOrder);
-        m_view->setModel(proxyModel);
-    }
     else if (text == "Price Descending")
-    {
         proxyModel->sort(1, Qt::DescendingOrder);
-        m_view->setModel(proxyModel);
-    }
     else if (text == "Name Ascending")
-    {
         proxyModel->sort(0, Qt::AscendingOrder);
-        m_view->setModel(proxyModel);
-    }
     else if (text == "Name Descending")
-    {
-        proxyModel->sort(0, Qt::DescendingOrder);
-        m_view->setModel(proxyModel);
-    }
+        proxyModel->sort(0, Qt::DescendingOrder);   
+    m_view->setModel(proxyModel);
 }
 
 void MainWindow::return_cart_sum()
@@ -117,6 +109,7 @@ void MainWindow::return_cart_sum()
     for (auto &item : cart_window->cart_model->m_data_cart)
             sum += item.data_cart[3].toDouble();
     m_textEdit->setText("Total: " + QString::number(sum, 'd', 2) + '$');
+    cart_window->c_textEdit->setText("Total: " + QString::number(sum, 'd', 2) + '$');
 }
 
 void MainWindow::open_cart()
