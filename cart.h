@@ -91,8 +91,8 @@ void add_data(const CartItem &data)
     beginResetModel ();
     for(auto &item : m_data_cart) {
         if(item == data) {
-            item.data_cart[2] = QString::number(item.data_cart[2].toDouble() + 1);
-            item.data_cart[3] = QString::number(item.data_cart[3].toDouble() + item.data_cart[1].toDouble(), 'd', 2);
+            item.data_cart[2] = item.data_cart[2].toDouble() + 1;
+            item.data_cart[3] = item.data_cart[3].toDouble() + item.data_cart[1].toDouble();
             flag = false;
             break;
         }
@@ -129,8 +129,8 @@ void remove_one(const CartItem &data)
         if(*it == data) {
             if(data.data_cart[2].toInt() > 1)
             {
-                it->data_cart[2] = QString::number(it->data_cart[2].toDouble() - 1);
-                it->data_cart[3] = QString::number(it->data_cart[3].toDouble() - it->data_cart[1].toDouble(), 'd', 2);
+                it->data_cart[2] = it->data_cart[2].toDouble() - 1;
+                it->data_cart[3] = it->data_cart[3].toDouble() - it->data_cart[1].toDouble();
             }
             else
             {

@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     setCentralWidget(central_widget);
 
     QGridLayout *layout = new QGridLayout(central_widget);
+    QHBoxLayout *box = new QHBoxLayout(central_widget);
 
     m_textEdit = new QLabel();
     cart_button = new QPushButton();
@@ -31,8 +32,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_view->setModel(item_model);
     proxyModel->setSourceModel(item_model);
+    proxyModel->setSortCaseSensitivity(Qt::CaseInsensitive);
+    m_textEdit->setStyleSheet(QString("font-size: %1px").arg(25));
     m_textEdit->setText("Total: " + QString::number(0, 'd', 2) + '$');
     cart_button->setText("Open Cart");
+    cart_button->setStyleSheet(QString("font-size: %1px").arg(30));
     add_to_cart_button->setText("Add to Cart");
     add_item_button->setText("Add new Item");
     sorting_value->addItem("Default");
@@ -40,6 +44,9 @@ MainWindow::MainWindow(QWidget *parent)
     sorting_value->addItem("Price Descending");
     sorting_value->addItem("Name Ascending");
     sorting_value->addItem("Name Descending");
+    add_item_button->setMaximumWidth(200);
+    sorting_value->setMaximumWidth(200);
+    add_to_cart_button->setMaximumWidth(200);
 
     connect(cart_button, SIGNAL(clicked()), this, SLOT(open_cart()));
     connect(add_to_cart_button, SIGNAL(clicked()), this, SLOT(add_to_cart_function()));
@@ -47,12 +54,14 @@ MainWindow::MainWindow(QWidget *parent)
     connect(add_item_button, SIGNAL(clicked()), this, SLOT(add_item_function()));
     connect(cart_window, SIGNAL(update_cart_sum()), this, SLOT(return_cart_sum()));
 
-    layout->addWidget(add_item_button);
-    layout->addWidget(sorting_value);
     layout->addWidget(cart_button);
-    layout->addWidget(add_to_cart_button);
+    layout->addLayout(box, 1, 0);
+    layout->addWidget(sorting_value);
     layout->addWidget(m_textEdit);
     layout->addWidget(m_view);
+    box->addWidget(add_item_button);
+    box->addWidget(add_to_cart_button);
+    box->addStretch();
 
     auto file_menu = menuBar ()->addMenu ("File");
     QAction *open_action = new QAction ("Open");
@@ -139,9 +148,8 @@ void MainWindow::add_to_cart_function()
         std::string s = index.data().toString().toStdString();
         res.data_cart[0] = QString(s.c_str());
         index = m_view->model()->index(row,1,QModelIndex());
-        s = index.data().toString().toStdString();
-        res.data_cart[1] = QString(s.c_str());
-        res.data_cart[2] = QString::number(1);
+        res.data_cart[1] = index.data().toDouble();//QString(s.c_str());
+        res.data_cart[2] = 1;
         res.data_cart[3] = res.data_cart[1];
     }
     cart_window->cart_model->add_data(res);
@@ -193,7 +201,7 @@ std::vector<Item> MainWindow::load_data (const QString &dir)
             if(i==0)
             {
                 double price = std::strtod(temp2.c_str(), NULL) / 10;
-                res.data[i] = QString::number(price, 'd', 2);
+                res.data[i] = price;
             }
             else
                 res.data[i] = QString(temp2.c_str());
@@ -246,8 +254,11 @@ QVariant ItemModel::data (const QModelIndex &index, int role) const
 {
    if (role == Qt::DisplayRole || role == Qt::EditRole)
    {
-       const Item &current_item = m_data[index.row ()];
-       return current_item.data[index.column ()];
+        const Item &current_item = m_data[index.row()];
+        if(index.column() == 1)
+            return QString::number(current_item.data[index.column()].toDouble(), 'd', 2);
+        else
+            return current_item.data[index.column ()];
    }
    return {};
 }

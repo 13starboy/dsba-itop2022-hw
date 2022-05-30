@@ -25,6 +25,8 @@ cart::cart(QWidget *parent) :
 
     cart_view->setModel(cart_model);
     proxy->setSourceModel(cart_model);
+    proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
+    c_textEdit->setStyleSheet(QString("font-size: %1px").arg(25));
     c_textEdit->setText("Total: " + QString::number(0, 'd', 2) + '$');
     delete_button->setText("Delete Item");
     remove_button->setText("Remove one Item");
@@ -38,6 +40,10 @@ cart::cart(QWidget *parent) :
     sort_params->addItem("Total price Descending");
     sort_params->addItem("Quantity Ascending");
     sort_params->addItem("Quantity Descending");
+    add_one_button->setMaximumWidth(200);
+    remove_button->setMaximumWidth(200);
+    delete_button->setMaximumWidth(200);
+    sort_params->setMaximumWidth(200);
 
     connect(delete_button, SIGNAL(clicked()), this, SLOT(delete_from_cart_function()));
     connect(remove_button, SIGNAL(clicked()), this, SLOT(remove_one_function()));
@@ -154,7 +160,10 @@ QVariant CartModel::data (const QModelIndex &index, int role) const
    if (role == Qt::DisplayRole || role == Qt::EditRole)
    {
        const CartItem &current_cart_item = m_data_cart[index.row ()];
-       return current_cart_item.data_cart[index.column ()];
+       if(index.column() == 1 || index.column() == 3)
+           return QString::number(current_cart_item.data_cart[index.column()].toDouble(), 'd', 2);
+       else
+           return current_cart_item.data_cart[index.column ()];
    }
    return {};
 }
