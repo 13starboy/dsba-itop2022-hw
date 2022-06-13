@@ -45,7 +45,8 @@ void add::apply_data()
         Item res;
         res.data[0] = QString(name_line->text().toStdString().c_str());
         res.data[1] = std::stod(price_line->text().toStdString());
-        emit sendData(res);
+        if (res.data[1].toDouble() >= 0)
+            emit sendData(res);
         close();
     }
     catch (...)
