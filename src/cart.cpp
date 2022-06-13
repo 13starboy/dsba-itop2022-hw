@@ -96,7 +96,20 @@ CartItem cart::collect_data()
     for (QModelIndex ind : indexes)
     {
         int row = ind.row();
-        res = cart_model->m_data_cart[row];
+        QModelIndex index = cart_view->model()->index(row, 0, QModelIndex());
+        std::string s = index.data().toString().toStdString();
+        res.data_cart[0] = s.c_str();
+        index = cart_view->model()->index(row, 1, QModelIndex());
+        s = index.data().toString().toStdString();
+        s.erase(s.end() - 1);
+        res.data_cart[1] = QString(s.c_str()).toDouble();
+        index = cart_view->model()->index(row, 2, QModelIndex());
+        s = index.data().toString().toStdString();
+        res.data_cart[2] = QString(s.c_str()).toDouble();
+        index = cart_view->model()->index(row, 3, QModelIndex());
+        s = index.data().toString().toStdString();
+        s.erase(s.end() - 1);
+        res.data_cart[3] = QString(s.c_str()).toDouble();
         break;
     }
     return res;
