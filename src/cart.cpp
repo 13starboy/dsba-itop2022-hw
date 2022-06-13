@@ -47,7 +47,7 @@ cart::cart(QWidget* parent) : QWidget(parent)
     add_one_button->setMaximumWidth(200);
     remove_button->setMaximumWidth(200);
     delete_button->setMaximumWidth(200);
-    sort_params->setMaximumWidth(200);
+    sort_params->setMaximumWidth(220);
 
     connect(delete_button, SIGNAL(clicked()), this, SLOT(delete_from_cart_function()));
     connect(remove_button, SIGNAL(clicked()), this, SLOT(remove_one_function()));
