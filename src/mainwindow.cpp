@@ -244,7 +244,7 @@ std::vector<Item> MainWindow::load_data(const QString& dir)
             ++i;
         }
         swap(res.data[0], res.data[1]);
-        if (j != 0)
+        if (j)
             result.push_back(res);
         j++;
     }
